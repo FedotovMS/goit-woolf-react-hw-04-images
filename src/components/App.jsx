@@ -22,7 +22,7 @@ export function App() {
         getImages();
       }
     },
-    [searchQuery, page]
+    [searchQuery, page, getImages]
   );
 
   const getImages = async () => {
