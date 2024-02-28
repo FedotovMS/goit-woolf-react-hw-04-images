@@ -1,6 +1,6 @@
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import Searchbar from './Searchbar/Searchbar';
 import Loader from './Loader/Loader';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -9,31 +9,24 @@ import css from './App.module.css';
 import FetchImages from './Api/Api.js';
 import 'react-toastify/dist/ReactToastify.css';
 
-export class App extends Component {
-  state = {
-    searchQuery: '',
-    page: 1,
-    totalImages: 0,
-    images: [],
-    status: 'idle',
-  };
+export function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalImages, setTotalImages] = useState(0);
+  const [images, setImages] = useState([]);
+  const [status, setStatus] = useState('idle');
 
-  componentDidUpdate(_, prevState) {
-    const { searchQuery, page, notification } = this.state;
+  useEffect(
+    prevState => {
+      if (searchQuery !== '' || page !== 1) {
+        getImages();
+      }
+    },
+    [searchQuery, page]
+  );
 
-    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
-      this.getImages();
-    }
-
-    if (prevState.error !== notification && notification) {
-      this.handleNotification();
-    }
-  }
-
-  getImages = async () => {
-    const { searchQuery, page } = this.state;
-
-    this.setState({ status: 'pending' });
+  const getImages = async () => {
+    setStatus('pending');
 
     try {
       const { images, totalImages } = await FetchImages(searchQuery, page);
@@ -45,58 +38,44 @@ export class App extends Component {
         toast.success(`We have found ${totalImages} images on your request.`);
       }
 
-      if (
-        totalImages > 0 &&
-        page !== 1 &&
-        totalImages <= this.state.images.length + 12
-      ) {
+      if (totalImages > 0 && page !== 1 && totalImages <= images.length + 12) {
         toast.info('There are no more images.');
       }
 
-      this.setState(prevState => ({
-        images: [...prevState.images, ...images],
-        status: 'resolved',
-        totalImages,
-      }));
+      setImages(images);
+      setStatus('resolved');
+      setTotalImages(totalImages);
     } catch (error) {
       toast.error('There are some problems! Try again later.');
+      setStatus('rejected');
     }
   };
 
-  formSubmitHandler = searchQuery => {
-    if (searchQuery === this.state.searchQuery) {
+  const formSubmitHandler = newSearchQuery => {
+    if (newSearchQuery === searchQuery) {
       toast.info('Images on your request is already shown.');
       return;
     }
-    this.setState({
-      searchQuery: searchQuery,
-      page: 1,
-      images: [],
-      totalImages: 0,
-    });
+    setSearchQuery(newSearchQuery);
+    setPage(1);
+    setImages([]);
+    setTotalImages(0);
   };
 
-  onLoadMore = () => {
-    this.setState(({ page }) => ({
-      page: page + 1,
-    }));
+  const onLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  render() {
-    const { images, status, page, totalImages } = this.state;
-    return (
-      <section className={css.App}>
-        <Searchbar onSubmit={this.formSubmitHandler} />
-        {status === 'pending' && <Loader />}
-        {(status === 'resolved' || (status === 'pending' && page !== 1)) && (
-          <ImageGallery images={images} />
-        )}
-        {((totalImages !== images.length && status === 'resolved') ||
-          (status === 'pending' && page > 1)) && (
-          <Button onClick={this.onLoadMore} />
-        )}
-        <ToastContainer autoClose={3000} />
-      </section>
-    );
-  }
+  return (
+    <section className={css.App}>
+      <Searchbar onSubmit={formSubmitHandler} />
+      {status === 'pending' && <Loader />}
+      {(status === 'resolved' || (status === 'pending' && page !== 1)) && (
+        <ImageGallery images={images} />
+      )}
+      {((totalImages !== images.length && status === 'resolved') ||
+        (status === 'pending' && page > 1)) && <Button onClick={onLoadMore} />}
+      <ToastContainer autoClose={3000} />
+    </section>
+  );
 }

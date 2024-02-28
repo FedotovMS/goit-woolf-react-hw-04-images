@@ -1,47 +1,47 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import { toast } from 'react-toastify';
 import styles from './Searchbar.module.css';
 
-export default class Searchbar extends Component {
-  state = {
-    searchQuery: '',
+export default function Searchbar({ onSubmit }) {
+  // state = {
+  //   searchQuery: '',
+  // };
+
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleInputChange = ({ target: { value } }) => {
+    setSearchQuery(value.toLowerCase());
   };
 
-  handleInputChange = ({ target: { value } }) => {
-    this.setState({ searchQuery: value.toLowerCase() });
-  };
-
-  handleSubmit = e => {
+  const handleSubmit = e => {
     e.preventDefault();
-    if (!e || this.state.searchQuery === '') {
+    if (!e || searchQuery.trim() === '') {
       toast.warn('Please, enter your search query');
       return;
     }
 
-    this.props.onSubmit(this.state.searchQuery);
+    onSubmit(searchQuery);
   };
 
-  render() {
-    const { searchQuery } = this.state;
+  // const { searchQuery } = this.state;
 
-    return (
-      <header className={styles.searchbar}>
-        <form className={styles.searchForm} onSubmit={this.handleSubmit}>
-          <button type="submit" className={styles.searchFormButton}>
-            <span className={styles.searchFormButtonLabel}>Search</span>
-          </button>
+  return (
+    <header className={styles.searchbar}>
+      <form className={styles.searchForm} onSubmit={handleSubmit}>
+        <button type="submit" className={styles.searchFormButton}>
+          <span className={styles.searchFormButtonLabel}>Search</span>
+        </button>
 
-          <input
-            className={styles.searchFormInput}
-            type="text"
-            autoComplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            value={searchQuery}
-            onChange={this.handleInputChange}
-          />
-        </form>
-      </header>
-    );
-  }
+        <input
+          className={styles.searchFormInput}
+          type="text"
+          autoComplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          value={searchQuery}
+          onChange={handleInputChange}
+        />
+      </form>
+    </header>
+  );
 }
