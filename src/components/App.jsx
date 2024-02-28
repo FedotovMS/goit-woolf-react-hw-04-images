@@ -19,37 +19,45 @@ export function App() {
   useEffect(
     prevState => {
       if (searchQuery !== '' || page !== 1) {
+        const getImages = async () => {
+          setStatus('pending');
+
+          try {
+            const { images, totalImages } = await FetchImages(
+              searchQuery,
+              page
+            );
+
+            if (images.length === 0) {
+              toast.error('Nothing found. Please, change your request.');
+            }
+            if (images.length !== 0 && page === 1) {
+              toast.success(
+                `We have found ${totalImages} images on your request.`
+              );
+            }
+
+            if (
+              totalImages > 0 &&
+              page !== 1 &&
+              totalImages <= images.length + 12
+            ) {
+              toast.info('There are no more images.');
+            }
+
+            setImages(images);
+            setStatus('resolved');
+            setTotalImages(totalImages);
+          } catch (error) {
+            toast.error('There are some problems! Try again later.');
+            setStatus('rejected');
+          }
+        };
         getImages();
       }
     },
     [searchQuery, page]
   );
-
-  const getImages = async () => {
-    setStatus('pending');
-
-    try {
-      const { images, totalImages } = await FetchImages(searchQuery, page);
-
-      if (images.length === 0) {
-        toast.error('Nothing found. Please, change your request.');
-      }
-      if (images.length !== 0 && page === 1) {
-        toast.success(`We have found ${totalImages} images on your request.`);
-      }
-
-      if (totalImages > 0 && page !== 1 && totalImages <= images.length + 12) {
-        toast.info('There are no more images.');
-      }
-
-      setImages(images);
-      setStatus('resolved');
-      setTotalImages(totalImages);
-    } catch (error) {
-      toast.error('There are some problems! Try again later.');
-      setStatus('rejected');
-    }
-  };
 
   const formSubmitHandler = newSearchQuery => {
     if (newSearchQuery === searchQuery) {
