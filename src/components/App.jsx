@@ -90,7 +90,7 @@ export function App() {
     setSearchQuery(newSearchQuery);
     setPage(1);
     setImages([]);
-    setTotalImages(0);
+    // setTotalImages(0);
   };
 
   const onLoadMore = () => {
