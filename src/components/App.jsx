@@ -14,7 +14,6 @@ export function App() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState([]);
-  // const [status, setStatus] = useState('idle');
   const [showBtn, setShowBtn] = useState(false);
 
   useEffect(() => {
@@ -32,15 +31,13 @@ export function App() {
           toast.success(`We have found ${totalImages} images on your request.`);
         }
         if (page < Math.ceil(totalImages / 12)) {
-          toast.info('There are no more images.');
+          toast.info('There are more images.');
         }
         setImages(prevImages => [...prevImages, ...images]);
-        // setStatus('resolved');
-        // setTotalImages(totalImages);
+
         setShowBtn(page < Math.ceil(totalImages / 12));
       } catch (error) {
         toast.error('There are some problems! Try again later.');
-        // setStatus('rejected');
       } finally {
         setLoading(false);
       }
