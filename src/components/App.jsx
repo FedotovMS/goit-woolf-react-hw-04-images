@@ -31,6 +31,9 @@ export function App() {
       }
       if (totalImages > 0 && page !== 1 && totalImages <= images.length + 12) {
         toast.info('There are no more images.');
+        if (page < Math.ceil(totalImages / 12)) {
+          toast.info('There are  more images.');
+        }
       } else {
         setImages(prevImages => [...prevImages, ...images]);
         setStatus('resolved');
