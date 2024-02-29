@@ -12,45 +12,75 @@ import 'react-toastify/dist/ReactToastify.css';
 export function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
-  const [totalImages, setTotalImages] = useState(0);
+  // const [totalImages, setTotalImages] = useState(0);
   const [images, setImages] = useState([]);
   const [status, setStatus] = useState('idle');
   const [showBtn, setShowBtn] = useState(false);
 
-  const getImages = async () => {
-    setStatus('pending');
-
-    try {
-      const { images, totalImages } = await FetchImages(searchQuery, page);
-
-      if (images.length === 0) {
-        toast.error('Nothing found. Please, change your request.');
-      }
-      if (images.length !== 0 && page === 1) {
-        toast.success(`We have found ${totalImages} images on your request.`);
-      }
-      if (totalImages > 0 && page !== 1 && totalImages <= images.length + 12) {
-        toast.info('There are no more images.');
-        if (page < Math.ceil(totalImages / 12)) {
-          toast.info('There are  more images.');
-        }
-      } else {
-        setImages(prevImages => [...prevImages, ...images]);
-        setStatus('resolved');
-        setTotalImages(totalImages);
-        setShowBtn(page < Math.ceil(totalImages / 12));
-      }
-    } catch (error) {
-      toast.error('There are some problems! Try again later.');
-      setStatus('rejected');
-    }
-  };
-
   useEffect(() => {
     if (!searchQuery) return;
+    const getImages = async () => {
+      setStatus('pending');
 
+      try {
+        const { images, totalImages } = await FetchImages(searchQuery, page);
+
+        if (images.length === 0) {
+          toast.error('Nothing found. Please, change your request.');
+        }
+        if (images.length !== 0 && page === 1) {
+          toast.success(`We have found ${totalImages} images on your request.`);
+        }
+        if (page < Math.ceil(totalImages / 12)) {
+          toast.info('There are no more images.');
+        } else {
+          setImages(prevImages => [...prevImages, ...images]);
+          setStatus('resolved');
+          // setTotalImages(totalImages);
+          setShowBtn(page < Math.ceil(totalImages / 12));
+        }
+      } catch (error) {
+        toast.error('There are some problems! Try again later.');
+        setStatus('rejected');
+      }
+    };
     getImages();
   }, [searchQuery, page]);
+
+  // const getImages = async () => {
+  //   setStatus('pending');
+
+  //   try {
+  //     const { images, totalImages } = await FetchImages(searchQuery, page);
+
+  //     if (images.length === 0) {
+  //       toast.error('Nothing found. Please, change your request.');
+  //     }
+  //     if (images.length !== 0 && page === 1) {
+  //       toast.success(`We have found ${totalImages} images on your request.`);
+  //     }
+  //     if (totalImages > 0 && page !== 1 && totalImages <= images.length + 12) {
+  //       toast.info('There are no more images.');}
+  //       if (page < Math.ceil(totalImages / 12)) {
+  //         toast.info('There are  more images.');
+  //       }
+  //     } else {
+  //       setImages(prevImages => [...prevImages, ...images]);
+  //       setStatus('resolved');
+  //       setTotalImages(totalImages);
+  //       setShowBtn(page < Math.ceil(totalImages / 12));
+  //     }
+  //   } catch (error) {
+  //     toast.error('There are some problems! Try again later.');
+  //     setStatus('rejected');
+  //   }
+  // // };
+
+  // useEffect(() => {
+  //   if (!searchQuery) return;
+
+  //   getImages();
+  // }, [searchQuery, page]);
 
   const formSubmitHandler = newSearchQuery => {
     if (newSearchQuery === searchQuery) {
