@@ -24,6 +24,7 @@ const FetchImages = async (searchQuery, page) => {
       };
     }
   );
+
   return { images, totalImages: response.data.totalHits };
 };
 

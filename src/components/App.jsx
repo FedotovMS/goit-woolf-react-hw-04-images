@@ -15,49 +15,39 @@ export function App() {
   const [totalImages, setTotalImages] = useState(0);
   const [images, setImages] = useState([]);
   const [status, setStatus] = useState('idle');
+  const [showBtn, setShowBtn] = useState(false);
 
-  useEffect(
-    prevState => {
-      if (searchQuery !== '' || page !== 1) {
-        const getImages = async () => {
-          setStatus('pending');
+  const getImages = async () => {
+    setStatus('pending');
 
-          try {
-            const { images, totalImages } = await FetchImages(
-              searchQuery,
-              page
-            );
+    try {
+      const { images, totalImages } = await FetchImages(searchQuery, page);
 
-            if (images.length === 0) {
-              toast.error('Nothing found. Please, change your request.');
-            }
-            if (images.length !== 0 && page === 1) {
-              toast.success(
-                `We have found ${totalImages} images on your request.`
-              );
-            }
-
-            if (
-              totalImages > 0 &&
-              page !== 1 &&
-              totalImages <= images.length + 12
-            ) {
-              toast.info('There are no more images.');
-            }
-
-            setImages(images);
-            setStatus('resolved');
-            setTotalImages(totalImages);
-          } catch (error) {
-            toast.error('There are some problems! Try again later.');
-            setStatus('rejected');
-          }
-        };
-        getImages();
+      if (images.length === 0) {
+        toast.error('Nothing found. Please, change your request.');
       }
-    },
-    [searchQuery, page]
-  );
+      if (images.length !== 0 && page === 1) {
+        toast.success(`We have found ${totalImages} images on your request.`);
+      }
+      if (totalImages > 0 && page !== 1 && totalImages <= images.length + 12) {
+        toast.info('There are no more images.');
+      } else {
+        setImages(prevImages => [...prevImages, ...images]);
+        setStatus('resolved');
+        setTotalImages(totalImages);
+        setShowBtn(page < Math.ceil(totalImages / 12));
+      }
+    } catch (error) {
+      toast.error('There are some problems! Try again later.');
+      setStatus('rejected');
+    }
+  };
+
+  useEffect(() => {
+    if (!searchQuery) return;
+
+    getImages();
+  }, [searchQuery, page]);
 
   const formSubmitHandler = newSearchQuery => {
     if (newSearchQuery === searchQuery) {
@@ -78,11 +68,10 @@ export function App() {
     <section className={css.App}>
       <Searchbar onSubmit={formSubmitHandler} />
       {status === 'pending' && <Loader />}
-      {(status === 'resolved' || (status === 'pending' && page !== 1)) && (
+      {status === 'resolved' && images.length > 0 && (
         <ImageGallery images={images} />
       )}
-      {((totalImages !== images.length && status === 'resolved') ||
-        (status === 'pending' && page > 1)) && <Button onClick={onLoadMore} />}
+      {showBtn && <Button onClick={onLoadMore} />}
       <ToastContainer autoClose={3000} />
     </section>
   );
